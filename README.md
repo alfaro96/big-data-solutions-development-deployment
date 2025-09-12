@@ -14,6 +14,8 @@ It leverages tools for large-scale data processing, experiment tracking, model m
 * `README.md`: Project documentation
 * `requirements.txt`: Dependencies for installation with `pip` or other package managers 
 
+---
+
 ## Environment setup
 
 This repository provides an [`environment.yml`](environment.yml) file, typically used for installing environments in conda-based package managers such as `conda`, `mamba`, or `micromamba`.
@@ -21,6 +23,8 @@ This repository provides an [`environment.yml`](environment.yml) file, typically
 If you prefer to use another package manager such as `venv`, the required dependencies are also listed in [`requirements.txt`](requirements.txt).  
 
 Please refer to the installation instructions of the corresponding package manager to learn how to create and activate environments, and how to install the listed dependencies.
+
+---
 
 ## Usage
 
