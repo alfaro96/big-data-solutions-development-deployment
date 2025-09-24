@@ -1,79 +1,55 @@
-# Big Data solutions: Development and deployment
+# Desarrollo y Despliegue de Soluciones *Big Data*
 
-This repository provides code examples and reference implementations for the development and deployment of Big Data solutions.
+Este repositorio proporciona ejemplos para el desarrollo y despliegue de soluciones *big data* y está preparada para ejecutarse en **`Databricks Free Edition`**. 
 
-It leverages tools for large-scale data processing, experiment tracking, model management, and reproducible machine learning workflows.
-
----
-
-## Repository structure
-
-* `.gitignore`: Ignore rules
-* `environment.yml`: `Conda`-based environment definition
-* `LICENSE`: License information for the repository  
-* `README.md`: Project documentation
-* `requirements.txt`: Dependencies for installation with `pip` or other package managers 
+Hace uso de herramientas para el procesamiento de datos a gran escala, el seguimiento de experimentos, la gestión de modelos y flujos de trabajo reproducibles de aprendizaje automático.
 
 ---
 
-## Environment setup
+## Requisitos previos
 
-This repository provides an [`environment.yml`](environment.yml) file, typically used for installing environments in conda-based package managers such as `conda`, `mamba`, or `micromamba`.
+#### 1. Cuenta en `Databricks`
 
-If you prefer to use another package manager such as `venv`, the required dependencies are also listed in [`requirements.txt`](requirements.txt).  
-
-Please refer to the installation instructions of the corresponding package manager to learn how to create and activate environments, and how to install the listed dependencies.
+[Regístrate gratis](https://www.databricks.com/signup/free-edition?provider=DB_FREE_TIER&dbx_source=www&itm_data=dbx-web&l=en-EN) para obtener un espacio de trabajo listo para usar.
 
 ---
 
-## Usage
+## Guía paso a paso
 
-### Launch `mlflow` user interface
+#### 1. Acceder al espacio de trabajo
 
-```bash
-mlflow ui --port 5000
-```
+[Inicia sesión](https://login.databricks.com/signup?dbx_source=www&itm_data=dbx-web-nav&l=en-EN&tuuid=ac0d65b0-942c-4fbb-822e-9aadd4cf8004&intent=SIGN_UP&rl_aid=916f9939-fca5-4311-8ced-7714ec26a1a5) y entra en tu **espacio de trabajo** recién creado. Si vienes de `Community Edition`, verás que ahora aparece como **`Free Edition`**.
 
-Then open your browser at `http://127.0.0.1:5000`
+#### 2. Clonar este repositorio
 
-This interface allows you to explore and compare experiment runs, metrics, parameters, and artifacts.
+1. Pulsa `Workspace` en la barra lateral.
+2. Selecciona tu carpeta `Home`.
+2. Pulsa `New` &rarr; `More` &rarr; `Git Folder` en la barra lateral.
+3. Pega la dirección de este repositorio en `Git repository URL`.
+4. Escribe `Fraude Detection` en `Git folder name`.
+5. Confima con `Create Git folder`.
 
-### Launch `mlflow` tracking server
+> **Nota**: si trabajas en un proyecto compartido, lo recomendable es clonar el repositorio en la carpeta `Shared` dentro de `Workspace`. De esta manera, los miembros del equipo con acceso podrán colaborar sobre el mismo código y libretas sin duplicarlos en carpetas personales y sin tener que configurar permisos adicionales.
 
-If you would like to use a more flexible setup instead of the simple user interface, you can run a managed instance of the `mlflow` tracking server:
+#### 3.Ejecutar libretas
 
-```bash
-mlflow server --host 127.0.0.1 --port 8080
-```
+1. Abre la libreta deseada.
+2. Instala las dependencias:
+    * En la barra lateral derecha, haz clic en `Environment`.
+    * Dentro del panel, ve a la sección `Dependencies` y selecciona `Added`.
+    * Pulsa el icono con forma de carpeta y busca `Fraude Detection` &rarr; `requirements.txt`.
+    * Selecciona el archivo y confirma con `Select`.
+    * En la parte inferior, haz clic en `Apply` y después en `Confirm` en la ventana emergente.
 
-This starts a dedicated tracking server at `http://127.0.0.1:8080`.
+## Estructura del repositorio
 
-Make sure to keep the command prompt open while the server is running, as closing it will shut it down.
-
----
-
-## Tech stack
-
-This project uses the following core technologies:
-
-* `pyspark`: Distributed data processing and machine learning pipelines
-* `mlflow`: Experiment tracking, model management, reproducibility
-* `jupyterlab`: Interactive exploration and prototyping
-* `pyarrow`: Columnar data format
-* `great-expectations`: Data validation and quality checks
+* `.gitignore`: reglas de exclusión
+* `LICENSE`: información sobre la licencia del repositorio
+* `README.md`: documentación del proyecto
+* `requirements.txt`: dependencias para instalación con `pip`
 
 ---
 
-## Notes
+## Licencia
 
-* The directory `mlruns/` and `mlartifacts/` are ignored by `git` via `.gitignore`.
-
-* Runs executed locally will only appear in your machine; they are not pushed.
-
-* The environment can be extended with additional packages as the project evolves.
-
----
-
-## License
-
-This repository is shared for educational and reference purposes. You are free to use and adapt the code for your own projects.
+Este repositorio se comparte con fines educativos y de referencia. Eres libre de usar y adaptar el código para tus propios proyectos.
