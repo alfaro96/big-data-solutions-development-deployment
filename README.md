@@ -1,6 +1,6 @@
 # Desarrollo y Despliegue de Soluciones *Big Data*
 
-Este repositorio proporciona ejemplos para el desarrollo y despliegue de soluciones *big data* y está preparada para ejecutarse en **`Databricks Free Edition`**. 
+Este repositorio proporciona ejemplos para el desarrollo y despliegue de soluciones *big data* y está preparado para ejecutarse en **`Databricks Free Edition`**. 
 
 Hace uso de herramientas para el procesamiento de datos a gran escala, el seguimiento de experimentos, la gestión de modelos y flujos de trabajo reproducibles de aprendizaje automático.
 
