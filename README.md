@@ -31,15 +31,22 @@ Hace uso de herramientas para el procesamiento de datos a gran escala, el seguim
 
 > **Nota**: si trabajas en un proyecto compartido, lo recomendable es clonar el repositorio en la carpeta `Shared` dentro de `Workspace`. De esta manera, los miembros del equipo con acceso podrán colaborar sobre el mismo código y libretas sin duplicarlos en carpetas personales y sin tener que configurar permisos adicionales.
 
-#### 3.Ejecutar libretas
+#### 3. Ejecutar libretas
 
 1. Abre la libreta deseada.
-2. Instala las dependencias:
-    * En la barra lateral derecha, haz clic en `Environment`.
-    * Dentro del panel, ve a la sección `Dependencies` y selecciona `Added`.
-    * Pulsa el icono con forma de carpeta y busca `Fraude Detection` &rarr; `requirements.txt`.
-    * Selecciona el archivo y confirma con `Select`.
-    * En la parte inferior, haz clic en `Apply` y después en `Confirm` en la ventana emergente.
+
+2. Actualiza la versión del entorno:  
+   1. En la barra lateral derecha, pulsa en `Environment`.  
+   2. Dentro del panel, ve a la sección `Environment version`.  
+   3. En el desplegable, cambia la versión de `2` a `4`.  
+
+3. Instala las dependencias:
+    1. En la barra lateral derecha, pulsa en `Environment`.
+    2. Dentro del panel, ve a la sección `Dependencies` y selecciona `Added`.
+    3. Pulsa el icono con forma de carpeta y busca `Fraude Detection` &rarr; `requirements.txt`.
+    4. Selecciona el archivo y confirma con `Select`.
+
+4. En la parte inferior, pulsa en `Apply` y después en `Confirm` en la ventana emergente.
 
 ## Estructura del repositorio
 
