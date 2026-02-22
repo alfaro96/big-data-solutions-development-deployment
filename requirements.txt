@@ -1,2 +1,0 @@
-great-expectations==1.5.11
-mlflow==3.4.0
