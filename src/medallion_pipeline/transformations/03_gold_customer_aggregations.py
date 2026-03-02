@@ -154,7 +154,7 @@ def gold_customer_aggregations():
         min("amount").over(w_30d).alias("min_amount_30d"),
         size(collect_set("merchant_id").over(w_30d)).alias("distinct_merchants_30d"),
         size(collect_set("merchant_country").over(w_30d)).alias("distinct_countries_30d"),
-        sum(when(col("is_fraud") == 1, 1).otherwise(0)).over(w_30d).alias("num_fraud_confirmed_30d"),
+        sum(when(col("is_fraud") == 1, 1).otherwise(0)).over(w_30d).alias("num_fraud_confirmed_30d")
     )
 
     # Derived ratio feature
