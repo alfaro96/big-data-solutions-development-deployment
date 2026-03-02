@@ -260,7 +260,8 @@ gold_aggregations_table_name = "gold_customer_aggregations"
 gold_aggregations_comment = """
 This managed table acts as the **behavioral feature table** in the `Feature
 Store`. It consolidates time-windowed aggregations per customer across four
-temporal resolutions (1h, 24h, 7d, 30d) into a single row per customer.
+temporal resolutions (1 hour, 24 hours, 7 days, 30 days) into a single row per
+customer.
 
 It is keyed by `customer_id` and is designed to be published to the `Online
 Store` for low-latency lookups during real-time inference. When a new
