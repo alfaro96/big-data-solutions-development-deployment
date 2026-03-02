@@ -81,22 +81,14 @@ technical audit metadata (`ingestion_timestamp`, `source_file`) to ensure data
 lineage and traceability.
 """
 
-tx_flow_name = "bronze_tx_ingest_flow"
-
 path_events_tx = vol_landing_zone / "events" / "transactions"
 
-dp.create_streaming_table(name = tx_table_name, comment = tx_comment)
 
-
-# A flow represents a data pipeline component that defines how data is
-# ingested, transformed, and routed. It acts as a logical grouping for
-# the streaming operations.
-
-# The decorator links the ingestion function to the target table.
+# The decorator automatically infers that this is a streaming table.
 # It instructs the engine to continuously append new records read by
-# auto loader to the end of the table, without modifying or overwriting
+# the auto loader to the end of the table, without modifying or overwriting
 # any existing data.
-@dp.append_flow(target = tx_table_name, name = tx_flow_name)
+@dp.table(name = tx_table_name, comment = tx_comment)
 def bronze_tx_flow():
     """
     Reads the transaction stream using `Auto Loader` (`cloudFiles`).
@@ -129,14 +121,10 @@ setting the stage for an exact `JOIN` with `bronze_transactions` in downstream
 layers.
 """
 
-labels_flow_name = "bronze_labels_ingest_flow"
-
 path_events_labels = vol_landing_zone / "events" / "labels"
 
-dp.create_streaming_table(name = labels_table_name, comment = labels_comment)
 
-
-@dp.append_flow(target = labels_table_name, name = labels_flow_name)
+@dp.table(name = labels_table_name, comment = labels_comment)
 def bronze_labels_flow():
     """
     Reads the delayed fraud labels stream using `Auto Loader` (`cloudFiles`).

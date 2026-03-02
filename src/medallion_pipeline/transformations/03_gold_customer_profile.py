@@ -34,11 +34,11 @@ It contains the `SCD2` customer history and derived demographic attributes
 # available in the online store.
 gold_aggregations_table_properties = {"delta.enableChangeDataFeed": "true"}
 
-# The "PRIMARY KEY" constraint is what makes this Delta table a feature table
+# The PRIMARY KEY constraint is what makes this Delta table a feature table
 # in Unity Catalog. No API registration call is needed: the feature store
 # recognizes any streaming table with a primary key constraint automatically.
 
-# The "TIMESERIES" keyword on "__START_AT" designates it as the temporal
+# The TIMESERIES keyword on __START_AT designates it as the temporal
 # anchor for PiT joins during training, ensuring the feature store always
 # retrieves the customer version that was valid at the moment of each
 # transaction, without any leakage of future profile changes.
@@ -69,26 +69,38 @@ gold_profile_schema = """
 """
 
 silver_customers_source = "silver_customers_history"
-gold_profile_flow_name = "flow_gold_profile"
 
-dp.create_streaming_table(
+
+# silver_customers_history is already a correct SCD2 table maintained by
+# AUTO CDC (dp.create_auto_cdc_flow with stored_as_scd_type = "2"). Using
+# @dp.table + readStream would be append-only, meaning it only captures
+# INSERT events and never sees the UPDATE that AUTO CDC emits to close
+# historical versions by setting __END_AT; leaving that field NULL for
+# all rows except the latest. Instead, @dp.materialized_view + spark.read
+# performs a full refresh against the current state of silver on every
+# pipeline run, faithfully reflecting the __START_AT and __END_AT intervals
+# that silver already maintains correctly. This guarantees that the feature
+# store PiT join will always resolve each transaction to the exact customer
+# version that was valid at that moment.
+@dp.materialized_view(
     name = gold_profile_table_name,
     comment = gold_profile_comment,
     table_properties = gold_aggregations_table_properties,
     schema = gold_profile_schema
 )
-
-
-@dp.append_flow(target = gold_profile_table_name, name = gold_profile_flow_name)
 def gold_customer_profile():
     """
-    Reads the historical customer profiles (`SCD2`).
+    Reads the full historical customer profiles from the `SCD2` silver table.
+
+    Uses a batch read (not streaming) so that both `INSERT` and `UPDATE` to
+    `__END_AT` from `AUTO CDC` are visible, producing a complete and accurate
+    `SCD2` history in gold.
 
     Derives computable demographic attributes. The temporal validity
     columns (`__START_AT`, `__END_AT`) are preserved for the `Feature Store`
     `PiT` joins.
     """
-    df_customers = spark.readStream.table(silver_customers_source)
+    df_customers = spark.read.table(silver_customers_source)
 
     df_profile = df_customers.select(
         col("customer_id"),

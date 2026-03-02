@@ -7,6 +7,10 @@ auditing.
 """
 
 
+###############################################################################
+# Functions
+###############################################################################
+
 def get_identity_and_time_rules():
     """
     Rules to ensure primary identifiers and temporal keys are present.

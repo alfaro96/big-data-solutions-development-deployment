@@ -134,7 +134,7 @@ dp.create_streaming_table(
 
 # This declares the "apply changes" logic. It automatically merges the clean
 # incoming updates into the target history table based on the primary key.
-# It uses "customer_updated_at" to handle out-of-order data properly and
+# It uses customer_updated_at to handle out-of-order data properly and
 # automatically generates and maintains the SCD Type 2 validity intervals.
 dp.create_auto_cdc_flow(
     target = customers_history_table_name,
@@ -306,7 +306,7 @@ def clean_labels():
 
 
 ###############################################################################
-# Enriched events: Stream-stream join
+# Enriched events: stream-stream join
 ###############################################################################
 
 silver_fraud_events_table = "silver_fraud_events"
@@ -327,7 +327,7 @@ silver_fraud_events_join_flow_name = "flow_silver_events_join"
 # A transaction can take up to 60 days to receive a confirmed fraud label
 # from the bank. We give it a 65-day watermark to be safe and ensure we don't
 # drop late-arriving labels. Therefore, Spark will keep a transaction in
-# state memory for exactly 60 days. If no label matches it within that window,
+# state memory for exactly 65 days. If no label matches it within that window,
 # it is safely cleared from memory.
 tx_watermark_delay = "65 days"
 
@@ -337,13 +337,8 @@ tx_watermark_delay = "65 days"
 # margin before ignoring it.
 labels_watermark_delay = "1 day"
 
-dp.create_streaming_table(
-    name = silver_fraud_events_table,
-    comment = silver_fraud_events_comment
-)
 
-
-@dp.append_flow(target = silver_fraud_events_table, name = silver_fraud_events_join_flow_name)
+@dp.table(name = silver_fraud_events_table, comment = silver_fraud_events_comment)
 def silver_events_join():
     """
     Executes a stateful stream-stream left join between clean transactions and labels.
@@ -359,12 +354,14 @@ def silver_events_join():
     df_tx  = spark.readStream.table(tx_clean_view_name).withWatermark("timestamp", tx_watermark_delay)
     df_lbl = spark.readStream.table(lbl_clean_view_name).withWatermark("label_available_date", labels_watermark_delay)
 
-    # Define business logic for the join: match by transaction identifier,
-    # label must arrive after the transaction occurred, and label must
-    # arrive within the allowed 30-day delayed feedback window
     join_on = [
+        # Match by transaction identifier
         col("tx.transaction_id") == col("lbl.transaction_id"),
+
+        # Label must arrive after the transaction occurred
         col("lbl.label_available_date") > col("tx.timestamp"),
+
+        # Label must arrive within the allowed 65-day delayed feedback window
         col("lbl.label_available_date") <= col("tx.timestamp") + expr(f"INTERVAL {tx_watermark_delay}")
     ]
 

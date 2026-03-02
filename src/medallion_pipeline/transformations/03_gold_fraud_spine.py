@@ -27,15 +27,9 @@ real-time transactional features, and the target label (`is_fraud`).
 """
 
 silver_events_source = "silver_fraud_events"
-gold_spine_flow_name = "flow_gold_spine"
-
-dp.create_streaming_table(
-    name = gold_spine_table_name,
-    comment = gold_spine_comment
-)
 
 
-@dp.append_flow(target = gold_spine_table_name, name = gold_spine_flow_name)
+@dp.table(name = gold_spine_table_name, comment = gold_spine_comment)
 def gold_fraud_spine():
     """
     Reads the enriched transactions to build the machine learning spine.
@@ -50,7 +44,7 @@ def gold_fraud_spine():
     # This guarantees the removal of the hidden watermark metadata from
     # "label_available_date".
     df_events = df_events.withColumn(
-        "label_available_date", 
+        "label_available_date",
         to_timestamp(date_format(col("label_available_date"), "yyyy-MM-dd HH:mm:ss.SSS"))
     )
 

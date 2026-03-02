@@ -7,6 +7,10 @@ original transactions and that the fraud indicators are valid.
 """
 
 
+###############################################################################
+# Functions
+###############################################################################
+
 def get_identity_rules():
     """
     Rules to ensure the primary identifier is present.
