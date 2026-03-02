@@ -1,10 +1,9 @@
 """
-`Silver` layer transformation: The purpose of this script is to build the
-second layer of our `Medallion` architecture. It takes the raw information
-from the `Bronze` layer, cleans it using declarative data quality rules 
-(`Expectations`), manages customer history tracking via `AUTO CDC`, and
-merges the streams using `Watermarks` to create an enriched, unified
-dataset ready for machine learning point-in-time correctness.
+The purpose of this script is to build the second layer of our `Medallion`
+architecture. It takes the raw information from the `Bronze` layer, cleans it
+using declarative data quality rules (`Expectations`), manages customer history
+tracking via `AUTO CDC`, and merges the streams using `Watermarks` to create an
+enriched, unified dataset ready for machine learning point-in-time correctness.
 """
 
 
@@ -53,9 +52,8 @@ dp.create_streaming_table(
 
 # We create a temporary streaming table to evaluate all data quality
 # expectations in a single pass. It acts as an in-memory routing hub:
-# it reads the raw data and attaches a boolean flag (`is_quarantined`)
-# to split the stream, without permanently storing this intermediate
-# evaluation state to disk.
+# it reads the raw data and attaches a boolean flag to split the stream,
+# without permanently storing this intermediate evaluation state to disk.
 @dp.table(name = cust_tmp_eval_name, temporary = True)
 @dp.expect_all(cust_rules_dict)
 def eval_customers():
@@ -66,12 +64,10 @@ def eval_customers():
     that fail rules.
     """
     df_raw = (spark.readStream
-                   # Instructs the streaming reader to suppress errors
-                   # and silently skip commits that modify or delete 
-                   # data (like an `OVERWRITE`) in the Bronze table.
-                   # This prevents the pipeline from crashing when
-                   # the source table is updated, allowing it to
-                   # continue processing.
+                   # Instructs the streaming reader to suppress errors and
+                   # silently skip commits that modify or delete data in the
+                   # bronze table. This prevents the pipeline from crashing when
+                   # the source table is updated, allowing it to continue processing.
                    .option("skipChangeCommits", "true")
                    .table(cust_bronze_source))
 
@@ -94,10 +90,10 @@ def quarantine_customers():
     return df_invalid
 
 
-# We use a view to define the "happy path" for our pipeline. It filters the
-# evaluated stream to retain only the valid records and strips away the
-# temporary routing flag, providing a pristine dataset for the downstream
-# `CDC` process to consume.
+# We use a view to define the "happy path" for our pipeline.
+# It filters the evaluated stream to retain only the valid
+# records and strips away the temporary routing flag, providing
+# a pristine dataset for the downstream process to consume.
 @dp.view(name = cust_clean_view_name)
 def clean_customers():
     """
@@ -136,11 +132,10 @@ dp.create_streaming_table(
 )
 
 
-# This declares the `APPLY CHANGES` logic (`Auto CDC`). It automatically
-# merges the clean incoming updates into the target history table based
-# on the primary key (`customer_id`). It uses `customer_updated_at` to
-# handle out-of-order data properly and automatically generates and
-# maintains the `SCD Type 2` validity intervals.
+# This declares the "apply changes" logic. It automatically merges the clean
+# incoming updates into the target history table based on the primary key.
+# It uses "customer_updated_at" to handle out-of-order data properly and
+# automatically generates and maintains the SCD Type 2 validity intervals.
 dp.create_auto_cdc_flow(
     target = customers_history_table_name,
     source = cdc_source,
@@ -152,7 +147,7 @@ dp.create_auto_cdc_flow(
 
 
 ###############################################################################
-# Events: Transactions (quarantine & typing)
+# Events: transactions (quarantine & typing)
 ###############################################################################
 
 tx_quarantine_table_name  = "silver_quarantine_tx"
@@ -232,7 +227,7 @@ def clean_transactions():
 
 
 ###############################################################################
-# Events: Labels (quarantine & typing)
+# Events: labels (quarantine & typing)
 ###############################################################################
 
 lbl_quarantine_table_name = "silver_quarantine_labels"
@@ -325,14 +320,14 @@ dataset for machine learning training.
 
 silver_fraud_events_join_flow_name = "flow_silver_events_join"
 
-# `Watermarks` are crucial for stateful stream processing(like our stream-stream join).
+# Watermarks are crucial for stateful stream processing (like our stream-stream join).
 # They tell internal event-time clock how long to keep an event in the state
 # memory before dropping it. This automatically prevents out-of-memory errors.
 
 # A transaction can take up to 60 days to receive a confirmed fraud label
 # from the bank. We give it a 65-day watermark to be safe and ensure we don't
-# drop late-arriving labels. Therefore, `Spark` will keep a transaction in
-# state memory for exactly 30 days. If no label matches it within that window,
+# drop late-arriving labels. Therefore, Spark will keep a transaction in
+# state memory for exactly 60 days. If no label matches it within that window,
 # it is safely cleared from memory.
 tx_watermark_delay = "65 days"
 

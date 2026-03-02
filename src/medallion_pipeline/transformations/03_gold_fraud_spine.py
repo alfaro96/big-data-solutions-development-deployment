@@ -1,9 +1,9 @@
 """
-`Gold` layer transformation: The purpose of this script is to build the
-`Spine` table of our `Medallion` architecture. It takes the clean events
-from the `Silver` layer and prepares the foundational dataset (entities,
-timestamps, and real-time features) used by the `Feature Store` to orchestrate
-point-in-time correct joins during training and inference.
+The purpose of this script is to build the `Spine` table of our `Medallion`
+architecture. It takes the clean events from the `Silver` layer and prepares
+the foundational dataset (entities, timestamps, and real-time features) used
+by the `Feature Store` to orchestrate point-in-time correct joins during
+training and inference.
 """
 
 
@@ -46,8 +46,9 @@ def gold_fraud_spine():
     df_events = spark.readStream.table(silver_events_source)
 
     # Force an irreversible physical transformation to bypass the optimizer:
-    # We convert the date to a string with an explicit format and back to a `timestamp`.
-    # This guarantees the removal of the hidden watermark metadata from `label_available_date`.
+    # we convert the date to a string with an explicit format and back to a timestamp.
+    # This guarantees the removal of the hidden watermark metadata from
+    # "label_available_date".
     df_events = df_events.withColumn(
         "label_available_date", 
         to_timestamp(date_format(col("label_available_date"), "yyyy-MM-dd HH:mm:ss.SSS"))

@@ -1,8 +1,9 @@
 """
-`Bronze` layer ingestion: The purpose of this script is to establish the first
-layer of our data architecture (`Medallion` architecture) known as the `Bronze`
-layer. It handles the ingestion of raw files from the landing zone into
-managed `Delta` tables using `Databricks Lakeflow Declarative Pipelines`.
+The purpose of this script is to establish the first layer of our data
+architecture (`Medallion` architecture) known as the `Bronze` layer.
+It handles the ingestion of raw files from the landing zone into managed
+`Delta` tables using `Databricks Lakeflow Declarative Pipelines`.
+
 It covers batch ingestion for master data (customers) and continuous
 streaming ingestion via `Auto Loader` for events (transactions and labels).
 """
@@ -51,14 +52,13 @@ def bronze_customers():
     """
     We use a standard batch read because customer data is a snapshot.
 
-    The framework automatically handles the "overwrite" (full refresh)
-    logic.
+    The framework automatically handles the "overwrite" (full refresh) logic.
     """
     return (
         spark.read
              .format("csv")
              .option("header", "true")  # The first row contains column names
-             .option("inferSchema", "true")  # Automatically detect data types
+             .option("inferSchema", "true")  # Automatically infer schema
              .load(str(path_context))  # Load from the volume
 
              # Add technical metadata columns for data lineage and auditing
@@ -68,7 +68,7 @@ def bronze_customers():
 
 
 ###############################################################################
-# Events ingestion: Transactions (streaming)
+# Events ingestion: transactions (streaming)
 ###############################################################################
 
 tx_table_name = "bronze_transactions"
@@ -88,13 +88,14 @@ path_events_tx = vol_landing_zone / "events" / "transactions"
 dp.create_streaming_table(name = tx_table_name, comment = tx_comment)
 
 
-# A flow represents a data pipeline component that defines  how data is
+# A flow represents a data pipeline component that defines how data is
 # ingested, transformed, and routed. It acts as a logical grouping for
 # the streaming operations.
-#
-# The decorator links the ingestion function to the target table. It instructs
-# the  engine to continuously append new records read by `Auto Loader` to the
-# end of the table,  without modifying or overwriting any existing data.
+
+# The decorator links the ingestion function to the target table.
+# It instructs the engine to continuously append new records read by
+# auto loader to the end of the table, without modifying or overwriting
+# any existing data.
 @dp.append_flow(target = tx_table_name, name = tx_flow_name)
 def bronze_tx_flow():
     """
@@ -107,7 +108,7 @@ def bronze_tx_flow():
         spark.readStream
              .format("cloudFiles")
              .option("cloudFiles.format", "json")
-             .option("cloudFiles.inferColumnTypes", "true")  # Automatically infer schema
+             .option("cloudFiles.inferColumnTypes", "true")
              .load(str(path_events_tx))
              .withColumn("ingestion_timestamp", current_timestamp())
              .withColumn("source_file", col("_metadata.file_path"))
@@ -115,7 +116,7 @@ def bronze_tx_flow():
 
 
 ###############################################################################
-# Events ingestion: Fraud labels (streaming)
+# Events ingestion: fraud labels (streaming)
 ###############################################################################
 
 labels_table_name = "bronze_labels"

@@ -10,10 +10,10 @@ El proyecto está diseñado para ejecutarse en el ecosistema de **`Databricks`**
 
 El desarrollo de esta solución se divide en las cuatro etapas clave de un proyecto *big data* real:
 
-- **Fase 1: Alcance y viabilidad:** Definición del caso de uso, cálculo del retorno de inversión y justificación de la arquitectura.
-- **Fase 2: Preparación y gestión de datos:** Ingesta, limpieza, enriquecimiento y creación del *feature store* utilizando programación declarativa con *Delta Live Tables* y la arquitectura *Medallion*. [Ver detalles del *pipeline* aquí](./src/medallion_pipeline/README.md).
-- **Fase 3: Modelado y experimentación:** Entrenamiento de modelos de aprendizaje automático con `Spark MLlib`, seguimiento de métricas y gestión del ciclo de vida del modelo mediante `MLflow`.
-- **Fase 4: Despliegue y monitorización:** Puesta en producción del modelo (inferencia en *batch* y *streaming*), integración continua y monitorización de degradación (*data* y *concept drift*).
+* **Fase 1: Alcance y viabilidad:** Definición del caso de uso, cálculo del retorno de inversión y justificación de la arquitectura.
+* **Fase 2: Preparación y gestión de datos:** Ingesta, limpieza, enriquecimiento y creación del *feature store* utilizando programación declarativa con *Delta Live Tables* y la arquitectura *Medallion*. [Ver detalles del *pipeline* aquí](./src/medallion_pipeline/README.md).
+* **Fase 3: Modelado y experimentación:** Entrenamiento de modelos de aprendizaje automático con `Spark MLlib`, seguimiento de métricas y gestión del ciclo de vida del modelo mediante `MLflow`.
+* **Fase 4: Despliegue y monitorización:** Puesta en producción del modelo (inferencia en *batch* y *streaming*), integración continua y monitorización de degradación (*data* y *concept drift*).
 
 ---
 
@@ -30,6 +30,7 @@ El desarrollo de esta solución se divide en las cuatro etapas clave de un proye
 ├── LICENSE  # Información sobre la licencia del repositorio
 ├── pyproject.toml. # Configuración y dependencias
 └── README.md  # Esta documentación principal
+└── requirements.txt  # Lista de dependencias necesarias para el entorno
 ```
 
 ---

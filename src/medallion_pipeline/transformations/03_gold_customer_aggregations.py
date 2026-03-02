@@ -1,17 +1,17 @@
 """
-`Gold` layer transformation: The purpose of this script is to build the
-behavioral feature table for the `Feature Store`. It reads clean events
-from the `Silver` layer and calculates time-windowed aggregations per
-customer (e.g., spending velocity, transaction counts, risk signals).
+The purpose of this script is to build the behavioral feature table
+for the `Feature Store`. It reads clean events from the `Silver` layer
+and calculates time-windowed aggregations per customer (e.g., spending
+velocity, transaction counts, risk signals).
 
 This table is keyed by `customer_id` and is designed to be published
-to the `Online Store` for real-time inference lookups.
+to the `Online Feature Store` for real-time inference lookups.
 
 Architecture note: `Spark Structured Streaming` only allows one watermark
-per stream. To compute multiple window sizes (1h, 24h, 7d, 30d), we
-declare one watermarked source per window size and then join the results.
-This produces a single row per customer with all aggregated features,
-ready for the `Feature Store`.
+per stream. To compute multiple window sizes (1 hour, 24 hours, 7 days,
+30 days), we declare one watermarked source per window size and then join
+the results. This produces a single row per customer with all aggregated
+features, ready for the `Feature Store`.
 """
 
 
@@ -59,7 +59,7 @@ EPSILON = 1e-6  # Small value used to avoid division by zero
 ###############################################################################
 # Intermediate views: one aggregation per window size
 #
-# We use `@dp.view` to compute each window in isolation. Views are
+# We use "@dp.view" to compute each window in isolation. Views are
 # lightweight (they do not persist data to disk) and allow us to reuse
 # the watermarked stream independently for each window size without
 # triggering redundant I/O.
@@ -82,9 +82,10 @@ def vw_agg_customer_1h():
     return (
         spark.readStream
              .table(silver_events_source)
-             # The watermark tells `Spark`: "discard any event whose
-             # timestamp is more than `watermark_delay` behind the
-             # latest observed timestamp". Without this, `Spark` would
+
+             # The watermark tells Spark: "discard any event whose
+             # timestamp is more than watermark_delay behind the
+             # latest observed timestamp". Without this, Spark would
              # accumulate state for every customer indefinitely.
              .withWatermark("timestamp", watermark_delay)
              .groupBy(
@@ -96,7 +97,6 @@ def vw_agg_customer_1h():
                  sum("amount").alias("sum_amount_1h"),
                  avg("amount").alias("avg_amount_1h"),
                  approx_count_distinct("merchant_id").alias("distinct_merchants_1h"),
-
                  # Count cross-border operations (proxy for geographic anomaly)
                  sum(
                      when(col("cross_border") == 1, 1).otherwise(0)
@@ -321,7 +321,7 @@ def gold_customer_aggregations():
     """
     df_1h  = spark.readStream.table(agg_1h_view_name)
     df_24h = spark.readStream.table(agg_24h_view_name)
-    df_7d  = spark.readStream.table(agg_7d_view_name)
+    df_7d = spark.readStream.table(agg_7d_view_name)
     df_30d = spark.readStream.table(agg_30d_view_name)
 
     join_keys = ["customer_id", "window_end"]
@@ -333,7 +333,7 @@ def gold_customer_aggregations():
         .join(df_30d, on = join_keys, how = "inner")
     )
 
-    # Derived ratio feature: how does the customer's 24h spend compare
+    # Derived ratio feature: how does the customer's 24 hours spend compare
     # to their 30-day average? A high ratio is a strong fraud signal.
     # We add a small epsilon to avoid division by zero for new customers.
     df_final = df_joined.withColumn(

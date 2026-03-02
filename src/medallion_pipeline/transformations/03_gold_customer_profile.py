@@ -1,7 +1,7 @@
 """
-`Gold` layer transformation: The purpose of this script is to build the
-customer profile feature table. It takes the `AUTO CDC` (`SCD2`) customer
-history from the `Silver` layer and derives static demographic features.
+The purpose of this script is to build the customer profile feature table.
+It takes the `AUTO CDC` (`SCD2`) customer history from the `Silver` layer
+and derives static demographic features.
 """
 
 
@@ -24,21 +24,22 @@ It contains the `SCD2` customer history and derived demographic attributes
 (e.g., `age_group`, `income_group`).
 """
 
-# `Change Data Feed` (`CDF`) is enabled so that the `Feature Store` can track
-# row-level changes (inserts, updates, deletes) via the `Delta` change log
-# rather than performing a full table scan on every sync cycle. Without `CDF`,
-# the `Feature Store` would need to re-scan the entire table to detect which
-# rows changed since the last publish. With `CDF`, it only reads the `Delta`
+# Change Data Feed (CDF) is enabled so that the feature store can track
+# row-level changes (inserts, updates, deletes) via the Delta change log
+# rather than performing a full table scan on every sync cycle. Without CDF,
+# the feature store would need to re-scan the entire table to detect which
+# rows changed since the last publish. With CDF, it only reads the Delta
 # change log; a much cheaper operation that translates directly into lower
 # latency between a new aggregation being computed and that value becoming
-# available in the `Online Store`.
+# available in the online store.
 gold_aggregations_table_properties = {"delta.enableChangeDataFeed": "true"}
 
-# The `PRIMARY KEY` constraint is what makes this `Delta` table a feature table
-# in `Unity Catalog`. No `API` registration call is needed: the `Feature Store`
+# The "PRIMARY KEY" constraint is what makes this Delta table a feature table
+# in Unity Catalog. No API registration call is needed: the feature store
 # recognizes any streaming table with a primary key constraint automatically.
-# The `TIMESERIES` keyword on `__START_AT` designates it as the temporal anchor
-# for `PiT` joins during training, ensuring the `Feature Store` always
+
+# The "TIMESERIES" keyword on "__START_AT" designates it as the temporal
+# anchor for PiT joins during training, ensuring the feature store always
 # retrieves the customer version that was valid at the moment of each
 # transaction, without any leakage of future profile changes.
 gold_profile_schema = """
@@ -109,8 +110,9 @@ def gold_customer_profile():
         col("preferred_channel"),
         col("loyalty_points_balance"),
 
-        # Keeping the `SCD2` columns is crucial so the `Feature Store` knows
-        # exactly which customer version to use at any given moment (`PiT` join)
+        # Keeping the SCD2 columns is crucial so the feature store knows
+        # exactly which customer version to use at any given moment
+        # (PiT join).
         col("__START_AT"),
         col("__END_AT"),
 

@@ -1,6 +1,6 @@
 """
-Data quality rules package: Exposes the main rule retrieval function
-`get_rules` used by the `Lakeflow` pipelines.
+Exposes the main rule retrieval function `get_rules` used by the `Lakeflow`
+pipelines.
 
 This encapsulates the logic of aggregating rules from different business
 domains, keeping the main pipeline script clean and focused purely on data
@@ -24,12 +24,8 @@ from .labels import get_label_rules
 
 def _get_all_rules_as_list_of_dict():
     """
-    Internal helper function: Returns the complete catalog of data quality
-    rules for the entire project, combining customers, transactions, and
-    labels into a single list.
-
-    Notice the underscore at the beginning of the name, indicating it's for
-    internal use.
+    Returns the complete catalog of data quality rules for the entire project,
+    combining customers, transactions, and labels into a single list.
     """
     all_rules = []
     all_rules.extend(get_customer_rules())

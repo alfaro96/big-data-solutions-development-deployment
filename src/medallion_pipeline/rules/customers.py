@@ -1,6 +1,6 @@
 """
-Customer data quality rules: This module contains all the business and
-integrity expectations for customer master data.
+This module contains all the business and integrity expectations for customer
+master data.
 
 Rules are divided into logical business domains for easier maintenance and
 auditing.

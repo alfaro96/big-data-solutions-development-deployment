@@ -1,6 +1,6 @@
 """
-Transaction data quality rules: This module contains all the business and
-integrity expectations for the stream  of credit card transactions.
+his module contains all the business and integrity expectations
+for the stream  of credit card transactions.
 
 Rules are divided into logical domains to facilitate auditing
 and maintenance by the data engineering and fraud strategy teams.
