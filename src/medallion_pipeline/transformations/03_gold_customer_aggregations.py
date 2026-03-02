@@ -97,6 +97,7 @@ def vw_agg_customer_1h():
                  sum("amount").alias("sum_amount_1h"),
                  avg("amount").alias("avg_amount_1h"),
                  approx_count_distinct("merchant_id").alias("distinct_merchants_1h"),
+
                  # Count cross-border operations (proxy for geographic anomaly)
                  sum(
                      when(col("cross_border") == 1, 1).otherwise(0)
