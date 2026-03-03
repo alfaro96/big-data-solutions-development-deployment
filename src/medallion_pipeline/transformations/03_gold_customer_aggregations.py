@@ -111,10 +111,10 @@ def gold_customer_aggregations():
     df = df_silver.withColumn("ts_sec", col("timestamp").cast("long"))
 
     # Define rolling windows looking back from each transaction
-    w_1h = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-3600, 0)
-    w_24h = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-86400, 0)
-    w_7d = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-7 * 86400, 0)
-    w_30d = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-30 * 86400, 0)
+    w_1h = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-3600, -1)
+    w_24h = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-86400, -1)
+    w_7d = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-7 * 86400, -1)
+    w_30d = Window.partitionBy("customer_id").orderBy("ts_sec").rangeBetween(-30 * 86400, -1)
 
     # Compute all aggregations on the fly
     df_agg = df.select(
