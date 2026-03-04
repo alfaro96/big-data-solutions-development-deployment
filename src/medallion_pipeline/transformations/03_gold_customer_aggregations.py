@@ -91,7 +91,7 @@ gold_aggregations_schema = """
     distinct_merchants_30d INT,
     distinct_countries_30d INT,
     num_fraud_confirmed_30d BIGINT,
-    amount_vs_avg_spend_ratio_30d DOUBLE,
+    spend_24h_vs_avg_30d_ratio DOUBLE,
     CONSTRAINT gold_customer_aggregations_pk PRIMARY KEY (customer_id, timestamp TIMESERIES)
 """
 
@@ -189,11 +189,11 @@ def gold_customer_aggregations():
     )
 
     # This variable is null when no 30-day history exists. Therefore, it is
-    # imputed to 1.0 because "current amount equals historical average" is
-    # the most conservative assumption for a customer with no prior activity
-    # in the window.
+    # imputed to 1.0 because assuming "recent 24h spend equals the historical
+    # average" is the most conservative baseline for a customer with no prior
+    # activity in the window.
     df_final = df_agg.withColumn(
-        "amount_vs_avg_spend_ratio_30d",
+        "spend_24h_vs_avg_30d_ratio",
         coalesce(
             col("sum_amount_24h") / (col("avg_amount_30d") + lit(EPSILON)),
             lit(1.0)
