@@ -129,8 +129,8 @@ train_weighted = train_df.withColumn(
     F.when(F.col(label_column) == 1.0, weight_fraud).otherwise(weight_legit)
 )
 
-print(f"Fraud: {n_fraud:,} ({pct_fraud:.2f}%)  weight = {weight_fraud:.2f}")
-print(f"Legit: {n_legit:,} ({pct_legit:.2f}%)  weight = {weight_legit:.2f}")
+print(f"Fraud: {n_fraud:,} ({pct_fraud:.2f}%), weight = {weight_fraud:.2f}")
+print(f"Legit: {n_legit:,} ({pct_legit:.2f}%), weight = {weight_legit:.2f}")
 print()
 
 
