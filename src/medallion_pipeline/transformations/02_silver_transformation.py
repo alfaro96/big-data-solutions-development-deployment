@@ -14,7 +14,7 @@ enriched, unified dataset ready for machine learning point-in-time correctness.
 import pyspark.pipelines as dp
 
 # Functions for data manipulation and constraints
-from pyspark.sql.functions import col, expr, to_timestamp
+from pyspark.sql.functions import coalesce, col, expr, to_timestamp
 
 # Centralized data quality rules repository
 from rules import get_rules
@@ -44,60 +44,59 @@ cust_rule_constraints = cust_rules_dict.values()
 cust_combined_rules = " AND ".join(cust_rule_constraints)
 cust_quarantine_expr = "NOT " + "(" + cust_combined_rules + ")"
 
-dp.create_streaming_table(
-    name = cust_quarantine_table_name,
-    comment = cust_quarantine_comment
-)
 
-
-# We create a temporary streaming table to evaluate all data quality
-# expectations in a single pass. It acts as an in-memory routing hub:
-# it reads the raw data and attaches a boolean flag to split the stream,
-# without permanently storing this intermediate evaluation state to disk.
+# We create a temporary table to evaluate all data quality expectations
+# in a single pass. It acts as an in-memory routing hub for the full
+# snapshot: it reads the raw data and attaches a boolean flag to separate
+# valid and invalid records, without permanently storing this intermediate
+# evaluation state to disk.
 @dp.table(name = cust_tmp_eval_name, temporary = True)
 @dp.expect_all(cust_rules_dict)
 def eval_customers():
     """
-    Reads raw customer data and evaluates data quality expectations.
+    Reads raw customer data (full snapshot), imputes missing sequence dates,
+    and evaluates data quality expectations.
 
     Adds a boolean flag (`is_quarantined`) to identify records
     that fail rules.
     """
-    df_raw = (spark.readStream
-                   # Instructs the streaming reader to suppress errors and
-                   # silently skip commits that modify or delete data in the
-                   # bronze table. This prevents the pipeline from crashing when
-                   # the source table is updated, allowing it to continue processing.
-                   .option("skipChangeCommits", "true")
-                   .table(cust_bronze_source))
+    df_raw = (
+        spark.readStream
+             # Instructs the streaming reader to process the full snapshot (overwrite) 
+             # as new data, enabling the AUTO CDC engine to calculate the actual changes.
+             .option("ignoreChanges", "true")
+             .table(cust_bronze_source)
+    )
 
-    df_evaluated = df_raw.withColumn("is_quarantined", expr(cust_quarantine_expr))
+    # Impute missing update timestamps with the join date to ensure
+    # new customers have a valid sequencing key for the AUTO CDC engine.
+    df_imputed = df_raw.withColumn("customer_updated_at", coalesce(col("customer_updated_at"), col("join_date")))
+
+    df_evaluated = df_imputed.withColumn("is_quarantined", expr(cust_quarantine_expr))
 
     return df_evaluated
 
 
-@dp.append_flow(target = cust_quarantine_table_name, name = cust_quarantine_flow_name)
+@dp.table(name = cust_quarantine_table_name, comment = cust_quarantine_comment)
 def quarantine_customers():
     """
-    Filters the evaluated customers and appends **only** the invalid ones
-    (`is_quarantined = true`) to the physical `DLQ`) table.
-
-    We drop the temporary flag before writing.
+    Overwrites the `DLQ` with the current snapshot of invalid customer records
+    (`is_quarantined = true`).
     """
-    df_evaluated = spark.readStream.table(cust_tmp_eval_name)
+    df_evaluated = spark.read.table(cust_tmp_eval_name)
     df_invalid = df_evaluated.filter("is_quarantined = true").drop("is_quarantined")
 
     return df_invalid
 
 
 # We use a view to define the "happy path" for our pipeline.
-# It filters the evaluated stream to retain only the valid
+# It filters the evaluated snapshot to retain only the valid
 # records and strips away the temporary routing flag, providing
 # a pristine dataset for the downstream process to consume.
 @dp.view(name = cust_clean_view_name)
 def clean_customers():
     """
-    Provides a clean, filtered stream of valid customers
+    Provides a clean, filtered snapshot of valid customers
     (`is_quarantined = false`).
 
     This view acts as the foundational source for the `AUTO CDC` flow defined
