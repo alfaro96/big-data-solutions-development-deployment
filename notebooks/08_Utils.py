@@ -365,7 +365,7 @@ def apply_promotion_aliases(
                 uc_model_name, champion_version_number,
                 "retirement_reason", "outperformed_by_challenger"
             )
-            print(f"Version {champion_version_number} -> 'retired'")
+            print(f"Version {champion_version_number} → 'retired'")
 
         client.set_registered_model_alias(
             name = uc_model_name,
@@ -381,7 +381,7 @@ def apply_promotion_aliases(
         client.set_model_version_tag(uc_model_name, final_version_number, "best_threshold_val", str(challenger_validation_threshold))
         client.set_model_version_tag(uc_model_name, final_version_number, "reg_param", challenger_hyperparams["reg_param"])
         client.set_model_version_tag(uc_model_name, final_version_number, "elastic_net_param", challenger_hyperparams["elastic_net_param"])
-        print(f"Version {final_version_number} (full refit on training, validation, and test) -> 'champion'")
+        print(f"Version {final_version_number} (full refit on training, validation, and test) → 'champion'")
 
     else:
         client.set_registered_model_alias(
@@ -395,7 +395,7 @@ def apply_promotion_aliases(
         )
         client.set_model_version_tag(uc_model_name, challenger_version_number, "rejection_reason", "did_not_outperform_champion")
         client.set_model_version_tag(uc_model_name, challenger_version_number, "test_auc_pr", f"{challenger_test_metrics['auc_pr']:.4f}")
-        print(f"Version {challenger_version_number} -> 'rejected'")
+        print(f"Version {challenger_version_number} → 'rejected'")
 
 
 ###############################################################################
