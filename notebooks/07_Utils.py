@@ -210,11 +210,11 @@ binary_flag_columns = [
     "phone_verified"
 ]
 
-# Integer column that is semantically categorical
-integer_categorical_columns = ["mcc_code"]
-
-# The label is never included in the feature vector to avoid data leakage
-exclude_columns = [label_column]
+# The label and high-cardinality identifiers are never included in the feature
+# vector to avoid data leakage and spurious correlations. Identifiers are excluded
+# here rather than dropped in the pipeline so that they remain available after
+# transform, enabling joins and traceability downstream.
+exclude_columns = [label_column, "customer_id", "transaction_id", "merchant_id", "mcc_code"]
 
 numeric_columns = []
 boolean_columns = []
@@ -227,10 +227,10 @@ for field in df_raw.schema.fields:
         continue
     if column_name in binary_flag_columns:
         boolean_columns.append(column_name)
-    elif column_name in integer_categorical_columns:
-        categorical_columns.append(column_name)
     elif type_name in numeric_types:
         numeric_columns.append(column_name)
+    elif type_name in boolean_types:
+        boolean_columns.append(column_name)
     elif type_name in categorical_types:
         categorical_columns.append(column_name)
 
@@ -244,20 +244,7 @@ print()
 # Preprocessing configuration
 ###############################################################################
 
-# Stage 1: drop
-
-# High-cardinality identifiers and columns redundant with others
-columns_to_drop = ["customer_id", "transaction_id", "merchant_id", "mcc_code"]
-drop_statement = "SELECT * EXCEPT ({}) FROM __THIS__".format(
-    ", ".join(columns_to_drop)
-)
-
-# Remove dropped columns from the type lists to avoid downstream pipeline errors
-numeric_columns = [column for column in numeric_columns if column not in columns_to_drop]
-boolean_columns = [column for column in boolean_columns if column not in columns_to_drop]
-categorical_columns = [column for column in categorical_columns if column not in columns_to_drop]
-
-# Stage 2: imputation
+# Stage 1: imputation
 
 # Count and sum aggregations initialize to 0 on empty windows (no imputation needed).
 # Mean, maximum and minimum aggregations arrive as null on empty windows (median imputation needed).
@@ -283,7 +270,7 @@ profile_numeric_columns = [
 imputer_input_columns = profile_numeric_columns + agg_null_columns
 imputer_output_columns = [f"{column}_imp" for column in imputer_input_columns]
 
-# Stage 3: boolean cast
+# Stage 2: boolean cast
 
 # COALESCE handles nulls inline: a missing security flag is treated as disabled (0.0)
 boolean_cast_expressions = ", ".join([
@@ -293,7 +280,7 @@ boolean_cast_expressions = ", ".join([
 boolean_output_columns = [f"{column}_dbl" for column in boolean_columns]
 boolean_statement = f"SELECT *, {boolean_cast_expressions} FROM __THIS__"
 
-# Stage 4: feature engineering
+# Stage 3: feature engineering
 
 # Only features computable from the current transaction at inference time.
 # Features requiring customer history must come from the feature store.
@@ -314,7 +301,7 @@ engineered_columns = [
     "is_cross_border_online"
 ]
 
-# Stages 5 and 6: categorical encoding
+# Stages 4 and 5: categorical encoding
 
 string_indexer_input_columns = categorical_columns
 string_indexer_output_columns = [f"{column}_idx" for column in categorical_columns]
@@ -322,7 +309,7 @@ string_indexer_output_columns = [f"{column}_idx" for column in categorical_colum
 ohe_input_columns = string_indexer_output_columns
 ohe_output_columns = [f"{column}_ohe" for column in categorical_columns]
 
-# Stage 7: vector assembly
+# Stage 6: vector assembly
 
 assembler_input_columns = (
     imputer_output_columns
@@ -333,7 +320,7 @@ assembler_input_columns = (
 )
 assembler_output_column = "features"
 
-# Stages 8 and 9: variance threshold selection and standard scaling
+# Stages 7 and 8: variance threshold selection and standard scaling
 
 var_selector_input_column = assembler_output_column
 var_selector_output_column = "features_var_filtered"
