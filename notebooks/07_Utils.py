@@ -210,11 +210,19 @@ binary_flag_columns = [
     "phone_verified"
 ]
 
-# The label and high-cardinality identifiers are never included in the feature
-# vector to avoid data leakage and spurious correlations. Identifiers are excluded
-# here rather than dropped in the pipeline so that they remain available after
-# transform, enabling joins and traceability downstream.
-exclude_columns = [label_column, "customer_id", "transaction_id", "merchant_id", "mcc_code"]
+# The label, high-cardinality identifiers, and the temporal column
+# are never included in the feature vector. Identifiers and the
+# timestamp are excluded here rather than dropped in the pipeline
+# so that they remain available after transform, enabling joins
+# and traceability downstream.
+exclude_columns = [
+    label_column,
+    "customer_id",
+    "transaction_id",
+    "merchant_id",
+    "mcc_code",
+    "timestamp"
+]
 
 numeric_columns = []
 boolean_columns = []
