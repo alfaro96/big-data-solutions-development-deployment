@@ -197,6 +197,7 @@ def apply_class_weights(df):
 
 # Type sets used to route each field to the correct pipeline stage
 numeric_types = {"IntegerType", "LongType", "FloatType", "DoubleType", "DecimalType"}
+boolean_types = {"BooleanType"}
 categorical_types = {"StringType"}
 
 # Binary security flags stored as integers: treated as boolean features
