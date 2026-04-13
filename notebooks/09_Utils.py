@@ -19,7 +19,6 @@ customer_profile_table = f"{catalog}.{database}.gold_customer_profile"
 customer_agg_table = f"{catalog}.{database}.gold_customer_aggregations"
 inference_enriched_table = f"{catalog}.{database}.gold_fraud_inference_enriched"
 fraud_labels_table = f"{catalog}.{database}.silver_fraud_events"
-baseline_table_name = f"{catalog}.{database}.gold_fraud_test_baseline"
 
 
 ###############################################################################

@@ -50,6 +50,7 @@ baseline_table_name = f"{catalog}.{database}.gold_fraud_test_baseline"
 inference_timestamp_col = "inference_timestamp"
 model_version_col = "model_version"
 
+
 ###############################################################################
 # MLflow setup
 ###############################################################################
