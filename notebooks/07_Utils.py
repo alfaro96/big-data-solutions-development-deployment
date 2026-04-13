@@ -36,41 +36,63 @@ from sklearn.metrics import (
 
 
 ###############################################################################
-# Configuration
+# Data and infrastructure
 ###############################################################################
 
-# Data and infrastructure
 CATALOG = "workspace"
 DATABASE = "credit_card_fraud"
 TRAINING_TABLE = f"{CATALOG}.{DATABASE}.gold_fraud_training_dataset"
+
+catalog = CATALOG
+database = DATABASE
+training_table = TRAINING_TABLE
+
+uc_volume_path = Path("/") / "Volumes" / CATALOG / DATABASE / "ml_artifacts"
+
+# Required for logging models on serverless clusters:
+# without a volume path, serialization has nowhere to write
+os.environ["MLFLOW_DFS_TMP"] = str(uc_volume_path)
+
+
+###############################################################################
+# Column configuration
+###############################################################################
 
 LABEL_COLUMN = "is_fraud"
 CLASS_WEIGHT_COLUMN = "class_weight"
 FEATURES_COLUMN = "features_scaled"
 DATE_COLUMN = "timestamp"
+TRANSACTION_ID_COLUMN = "transaction_id"
 
-# Temporal split window sizes in months.
-# Test window: everything added after ml.data_previous_max_date of the previous cycle; duration varies depending on when retraining is triggered.
-# Validation window: VALIDATION_WINDOW_MONTHS months immediately before the test window.
-# Training window: TRAINING_WINDOW_MONTHS immediately before the validation window; capped to avoid stale fraud patterns degrading performance.
-# On the first version of the table, the split falls back to the defaults.
-TRAINING_WINDOW_MONTHS = 36
-VALIDATION_WINDOW_MONTHS = 12
-
-catalog = CATALOG
-database = DATABASE
-training_table = TRAINING_TABLE
 label_column = LABEL_COLUMN
 class_weight_column = CLASS_WEIGHT_COLUMN
 features_column = FEATURES_COLUMN
 date_column = DATE_COLUMN
+transaction_id_column = TRANSACTION_ID_COLUMN
+
+
+###############################################################################
+# Temporal split configuration
+###############################################################################
+
+# Test window: everything added after ml.data_previous_max_date of the previous
+# cycle; duration varies depending on when retraining is triggered.
+# Validation window: VALIDATION_WINDOW_MONTHS months immediately before the test window.
+# Training window: TRAINING_WINDOW_MONTHS immediately before the validation window;
+# capped to avoid stale fraud patterns degrading performance.
+# On the first version of the table, the split falls back to the defaults.
+TRAINING_WINDOW_MONTHS = 36
+VALIDATION_WINDOW_MONTHS = 12
 
 # Random seed: shared so run tags built in both notebooks are identical
 seed = 45127
 
-uc_volume_path = Path("/") / "Volumes" / CATALOG / DATABASE / "ml_artifacts"
 
-# Project metadata: shared across all notebooks and used as tags throughout
+###############################################################################
+# Project metadata
+###############################################################################
+
+# Shared across all notebooks and used as tags throughout
 current_user = spark.sql("SELECT current_user()").collect()[0][0]
 project = "credit_card_fraud_detection"
 team = "ml_engineering"
@@ -86,10 +108,6 @@ mlflow_experiment_name = "fraud_detection_training"
 mlflow_experiment_path = str(
     Path("/") / "Workspace" / "Users" / current_user / ".experiments" / database / mlflow_experiment_name
 )
-
-# Required for logging models on serverless clusters:
-# without a volume path, serialization has nowhere to write
-os.environ["MLFLOW_DFS_TMP"] = str(uc_volume_path)
 
 
 ###############################################################################
@@ -471,7 +489,7 @@ def fig_lr_coefficients(coef_array, feature_names, title):
     ax.set_xlabel("Coefficient value")
     ax.set_title(title)
     ax.legend(
-        handles=[
+        handles = [
             Patch(color = color_positive_coef, label = "Indicative of fraud"),
             Patch(color = color_negative_coef, label = "Indicative of legit")
         ],
