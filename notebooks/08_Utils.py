@@ -175,6 +175,11 @@ def get_champion_metadata(client, uc_model_name):
     Returns `None` on a cold start (no `champion` alias yet), allowing the
     caller to skip the champion-versus-challenger comparison and promote
     the challenger directly.
+
+    The model artifact URI points to the `challenger_model` artefact logged
+    during the champion's own production evaluation run. This is the model
+    that was trained on `train + validation` and evaluated on `test`, ensuring
+    a symmetric comparison with the new challenger.
     """
     try:
         champion_version = client.get_model_version_by_alias(
@@ -182,13 +187,13 @@ def get_champion_metadata(client, uc_model_name):
             alias = "champion"
         )
         version_number = champion_version.version
-        run_id = champion_version.tags.get("candidate_run_id")
+        production_run_id = champion_version.tags.get("production_run_id")
         return {
             "version_number": version_number,
-            "candidate_run_id": run_id,
+            "production_run_id": production_run_id,
             "best_threshold_val": float(champion_version.tags.get("best_threshold_val", "0.5")),
             "evaluation_tag": f"champion_v{version_number}",
-            "model_artifact_uri": f"runs:/{run_id}/pipeline_model"
+            "model_artifact_uri": f"runs:/{production_run_id}/challenger_model"
         }
     except Exception:
         return None
@@ -367,7 +372,9 @@ def apply_promotion_aliases(
     challenger_test_metrics,
     challenger_validation_threshold,
     challenger_hyperparams,
-    champion_exists
+    champion_exists,
+    production_run_id,
+    candidate_run_id
 ):
     """
     Apply all `Unity Catalog` alias and tag changes that reflect the promotion decision.
@@ -410,6 +417,8 @@ def apply_promotion_aliases(
         client.set_model_version_tag(uc_model_name, final_version_number, "best_threshold_val", str(challenger_validation_threshold))
         client.set_model_version_tag(uc_model_name, final_version_number, "reg_param", challenger_hyperparams["reg_param"])
         client.set_model_version_tag(uc_model_name, final_version_number, "elastic_net_param", challenger_hyperparams["elastic_net_param"])
+        client.set_model_version_tag(uc_model_name, final_version_number, "production_run_id", production_run_id)
+        client.set_model_version_tag(uc_model_name, final_version_number, "candidate_run_id", candidate_run_id)
         print(f"Version {final_version_number} (full refit on training, validation, and test) → 'champion'")
 
     else:
