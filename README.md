@@ -22,7 +22,7 @@ El desarrollo de esta solución se divide en las cuatro etapas clave de un proye
 ```text
 ├── .vscode/  # Configuraciones del entorno visual
 ├── notebooks/  # Libretas interactivas para análisis, modelado y despliegue
-├── resources/  # Infraestructura como código (definiciones de clústeres, etc.)
+├── resources/  # Infraestructura como código (definiciones de clústeres, etc.) y *dashboards*
 ├── src/  # Código fuente principal del proyecto
 │   └── medallion_pipeline/  # Pipeline de carga, extracción y transformación
 ├── .gitignore  # Reglas de exclusión para el gestor de control de versiones

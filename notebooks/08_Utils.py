@@ -374,7 +374,8 @@ def apply_promotion_aliases(
     challenger_hyperparams,
     champion_exists,
     production_run_id,
-    candidate_run_id
+    candidate_run_id,
+    test_end_date
 ):
     """
     Apply all `Unity Catalog` alias and tag changes that reflect the promotion decision.
@@ -419,6 +420,7 @@ def apply_promotion_aliases(
         client.set_model_version_tag(uc_model_name, final_version_number, "elastic_net_param", challenger_hyperparams["elastic_net_param"])
         client.set_model_version_tag(uc_model_name, final_version_number, "production_run_id", production_run_id)
         client.set_model_version_tag(uc_model_name, final_version_number, "candidate_run_id", candidate_run_id)
+        client.set_model_version_tag(uc_model_name, final_version_number, "test_end_date", test_end_date)
         print(f"Version {final_version_number} (full refit on training, validation, and test) → 'champion'")
 
     else:
