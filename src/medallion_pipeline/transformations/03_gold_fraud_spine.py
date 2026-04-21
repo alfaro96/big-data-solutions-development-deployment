@@ -76,3 +76,55 @@ def gold_fraud_spine():
     )
 
     return df_spine
+
+
+###############################################################################
+# Inference spine
+###############################################################################
+
+gold_inference_spine_table_name = "gold_fraud_inference_spine"
+gold_inference_spine_comment = """
+This managed table acts as the `Spine DataFrame` for production inference.
+It contains clean transactions directly from the `silver` layer, without
+waiting for fraud labels. Used exclusively to score all incoming transactions
+as soon as they are validated, independently of the stream-stream join
+watermark of `silver_fraud_events`.
+"""
+
+tx_clean_source = "vw_clean_transactions"
+
+
+@dp.table(name = gold_inference_spine_table_name, comment = gold_inference_spine_comment)
+def gold_fraud_inference_spine():
+    """
+    Reads clean transactions directly from `vw_clean_transactions`, without
+    any dependency on the stream-stream join watermark of `silver_fraud_events`.
+
+    This guarantees that all validated transactions are available for scoring
+    immediately, regardless of whether their fraud label has arrived yet.
+
+    The `ingestion_timestamp` and `source_file` audit columns are dropped
+    as they are internal pipeline metadata not needed for inference.
+    """
+    return (
+        spark.readStream
+             .table(tx_clean_source)
+             .select(
+                 col("transaction_id"),
+                 col("customer_id"),
+                 col("timestamp"),
+                 col("merchant_id"),
+                 col("amount"),
+                 col("currency"),
+                 col("mcc_code"),
+                 col("mcc_category"),
+                 col("cross_border"),
+                 col("is_tor_or_vpn"),
+                 col("ip_country_match"),
+                 col("device_fingerprint_known"),
+                 col("payment_method"),
+                 col("device_type"),
+                 col("three_ds_result"),
+                 col("merchant_country")
+             )
+    )

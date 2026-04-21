@@ -62,12 +62,14 @@ LABEL_COLUMN = "is_fraud"
 CLASS_WEIGHT_COLUMN = "class_weight"
 FEATURES_COLUMN = "features_scaled"
 DATE_COLUMN = "timestamp"
+LABEL_AVAILABLE_DATE_COLUMN = "label_available_date"
 TRANSACTION_ID_COLUMN = "transaction_id"
 
 label_column = LABEL_COLUMN
 class_weight_column = CLASS_WEIGHT_COLUMN
 features_column = FEATURES_COLUMN
 date_column = DATE_COLUMN
+label_available_date_column = LABEL_AVAILABLE_DATE_COLUMN
 transaction_id_column = TRANSACTION_ID_COLUMN
 
 

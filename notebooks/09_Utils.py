@@ -14,11 +14,11 @@ from databricks.feature_engineering import FeatureEngineeringClient, FeatureLook
 # Table configuration
 ###############################################################################
 
-spine_table = f"{catalog}.{database}.gold_fraud_spine"
+spine_table = f"{catalog}.{database}.gold_fraud_inference_spine"
 customer_profile_table = f"{catalog}.{database}.gold_customer_profile"
 customer_agg_table = f"{catalog}.{database}.gold_customer_aggregations"
 inference_enriched_table = f"{catalog}.{database}.gold_fraud_inference_enriched"
-fraud_labels_table = f"{catalog}.{database}.silver_fraud_events"
+fraud_labels_table = f"{catalog}.{database}.bronze_labels"
 
 
 ###############################################################################
@@ -106,12 +106,9 @@ aggregations_lookup = FeatureLookup(
 
 feature_lookups = [profile_lookup, aggregations_lookup]
 
-exclude_columns = ["label_available_date"]
-
 print(f"Profile features ({len(profile_feature_names)}): {profile_feature_names}")
 print(f"Aggregation features ({len(aggregation_feature_names)}): {aggregation_feature_names}")
 print(f"Total feature columns: {len(profile_feature_names) + len(aggregation_feature_names)}")
 print()
-
 
 print("09_Utils.py script loaded successfully.")
