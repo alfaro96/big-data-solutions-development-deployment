@@ -31,6 +31,7 @@ from pyspark.sql.functions import (
     min,
     size,
     sum,
+    to_timestamp,
     when
 )
 
@@ -39,29 +40,26 @@ from pyspark.sql.functions import (
 # Configuration variables and constants
 ###############################################################################
 
-silver_events_source = "silver_fraud_events"
+# Source for training aggregations: includes confirmed fraud labels via the
+# stream-stream join watermark, guaranteeing point-in-time correctness.
+training_events_source  = "silver_fraud_events"
+
+# Source for inference aggregations: reads ALL transactions directly from
+# bronze, bypassing quality filters to ensure every transaction is scored,
+# including those with unknown categorical values.
+inference_events_source = "bronze_transactions"
+inference_labels_source = "bronze_labels"
+
 EPSILON = 1e-6  # Small value used to avoid division by zero
 
 
 ###############################################################################
-# Final feature table: rolling window aggregations
+# Shared schema and table properties
 ###############################################################################
 
-gold_aggregations_table_name = "gold_customer_aggregations"
-gold_aggregations_comment = """
-This managed table acts as the **behavioral feature table** in the `Feature
-Store`. It consolidates time-windowed aggregations per customer across four
-temporal resolutions (1 hour, 24 hours, 7 days, 30 days) into a single row per
-customer per transaction timestamp.
-
-It is keyed by `customer_id` and is designed to be published to the `Online
-Feature Store` for low-latency lookups during real-time inference. When a new
-transaction arrives, the model serving layer queries this table by `customer_id`
-to retrieve the customer's latest behavioral signals.
-"""
-
 gold_profile_table_properties = {"delta.enableChangeDataFeed": "true"}
-gold_aggregations_schema = """
+
+gold_aggregations_schema_template = """
     customer_id STRING NOT NULL,
     timestamp TIMESTAMP NOT NULL,
     count_tx_1h BIGINT,
@@ -92,30 +90,37 @@ gold_aggregations_schema = """
     distinct_countries_30d INT,
     num_fraud_confirmed_30d BIGINT,
     spend_24h_vs_avg_30d_ratio DOUBLE,
-    CONSTRAINT gold_customer_aggregations_pk PRIMARY KEY (customer_id, timestamp TIMESERIES)
+    CONSTRAINT {pk_name} PRIMARY KEY (customer_id, timestamp TIMESERIES)
 """
 
-
-@dp.table(
-    name = gold_aggregations_table_name,
-    comment = gold_aggregations_comment,
-    table_properties = gold_profile_table_properties,
-    schema = gold_aggregations_schema
+gold_aggregations_schema = gold_aggregations_schema_template.format(
+    pk_name = "gold_customer_aggregations_pk"
 )
-def gold_customer_aggregations():
-    """
-    Computes rolling window aggregations in a single pass using batch processing.
-    """
-    df_silver = spark.read.table(silver_events_source)
 
-    # Convert timestamp to milliseconds for sub-second precision.
-    # Preserves decimal seconds before multiplying by 1000.
-    df = df_silver.withColumn("ts_ms", (col("timestamp").cast("double") * 1000).cast("long"))
+gold_aggregations_inference_schema = gold_aggregations_schema_template.format(
+    pk_name = "gold_customer_aggregations_inference_pk"
+)
 
-    # Define rolling windows in milliseconds, using an upper bound -1 to intentionally
-    # exclude the current transaction from its own aggregation window, preventing data
-    # leakage. Using milliseconds (instead of seconds) ensures two transactions from the
-    # same customer within the same second are still ordered and excluded correctly.
+
+###############################################################################
+# Shared aggregation logic
+###############################################################################
+
+def _compute_aggregations(df):
+    """
+    Compute rolling window aggregations in a single pass over the provided
+    `DataFrame`. The input must contain `customer_id`, `timestamp`, `ts_ms`,
+    `amount`, `cross_border`, `is_tor_or_vpn`, `three_ds_result`,
+    `merchant_id`, `merchant_country`, `device_type` and `is_fraud`.
+
+    Returns a `DataFrame` with one row per customer per transaction timestamp,
+    containing all behavioral features.
+    """
+    # Define rolling windows in milliseconds, using an upper bound -1 to
+    # intentionally exclude the current transaction from its own aggregation
+    # window, preventing data leakage. Using milliseconds (instead of seconds)
+    # ensures two transactions from the same customer within the same second
+    # are still ordered and excluded correctly.
     w_1h  = Window.partitionBy("customer_id").orderBy("ts_ms").rangeBetween(-3_600_000, -1)
     w_24h = Window.partitionBy("customer_id").orderBy("ts_ms").rangeBetween(-86_400_000, -1)
     w_7d  = Window.partitionBy("customer_id").orderBy("ts_ms").rangeBetween(-7 * 86_400_000, -1)
@@ -126,7 +131,7 @@ def gold_customer_aggregations():
     # Not all nulls are equal, so the fix is applied selectively.
     #
     # Counters and distinct sets (count_tx_*, distinct_merchants_*, etc.)
-    # already return 0 when the window is empty (Spark handles them
+    # already return 0 when the window is empty (Spark handles them
     # correctly and no coalesce is needed).
     #
     # Sums and conditional sums (sum_amount_*, count_cross_border_1h,
@@ -136,8 +141,8 @@ def gold_customer_aggregations():
     # them at source.
     #
     # Statistical aggregations (avg_*, max_*, min_*) are intentionally left
-    # null because "average of nothing" is undefined (imputing 0 would be
-    # factually wrong). These columns are handled in the experimentation
+    # null because "average of nothing" is undefined (imputing 0 would be
+    # factually wrong). These columns are handled in the experimentation
     # notebook, where the imputation strategy is registered as a parameter
     # so it remains auditable across runs.
     df_agg = df.select(
@@ -190,9 +195,9 @@ def gold_customer_aggregations():
 
     # This variable is null when no 30-day history exists. Therefore, it is
     # imputed to 1.0 because assuming "recent 24h spend equals the historical
-    # average" is the most conservative baseline for a customer with no prior
-    # activity in the window.
-    df_final = df_agg.withColumn(
+    # average" is the most conservative baseline for a customer with no prior
+    # activity in the window.
+    return df_agg.withColumn(
         "spend_24h_vs_avg_30d_ratio",
         coalesce(
             col("sum_amount_24h") / (col("avg_amount_30d") + lit(EPSILON)),
@@ -200,4 +205,87 @@ def gold_customer_aggregations():
         )
     )
 
-    return df_final
+
+###############################################################################
+# Training feature table: rolling window aggregations
+###############################################################################
+
+gold_aggregations_table_name = "gold_customer_aggregations"
+gold_aggregations_comment = """
+This managed table acts as the **behavioral feature table** in the `Feature
+Store` for model **training**. It consolidates time-windowed aggregations per
+customer across four temporal resolutions (1 hour, 24 hours, 7 days, 30 days)
+into a single row per customer per transaction timestamp.
+
+It reads from `silver_fraud_events`, which includes confirmed fraud labels via
+the stream-stream join watermark, guaranteeing point-in-time correctness during
+training.
+"""
+
+
+@dp.table(
+    name = gold_aggregations_table_name,
+    comment = gold_aggregations_comment,
+    table_properties = gold_profile_table_properties,
+    schema = gold_aggregations_schema
+)
+def gold_customer_aggregations():
+    """
+    Computes rolling window aggregations for training in a single pass using
+    batch processing. Reads from `silver_fraud_events` to ensure confirmed
+    fraud labels are available for `num_fraud_confirmed_30d`.
+    """
+    df_silver = spark.read.table(training_events_source)
+    df = df_silver.withColumn("ts_ms", (col("timestamp").cast("double") * 1000).cast("long"))
+    return _compute_aggregations(df)
+
+
+###############################################################################
+# Inference feature table: rolling window aggregations
+###############################################################################
+
+gold_aggregations_inference_table_name = "gold_customer_aggregations_inference"
+gold_aggregations_inference_comment = """
+This managed table acts as the **behavioral feature table** in the `Feature
+Store` for production **inference**. It is structurally identical to
+`gold_customer_aggregations` but reads directly from `bronze_transactions`
+instead of `silver_fraud_events`, bypassing the stream-stream join watermark
+and the silver quality filters to guarantee that every incoming transaction
+is available for scoring immediately.
+
+For `num_fraud_confirmed_30d`, confirmed labels are joined from `bronze_labels`.
+Transactions without a confirmed label yet are treated as non-fraudulent (0),
+which is the only information available at prediction time.
+"""
+
+
+@dp.table(
+    name = gold_aggregations_inference_table_name,
+    comment = gold_aggregations_inference_comment,
+    table_properties = gold_profile_table_properties,
+    schema = gold_aggregations_inference_schema
+)
+def gold_customer_aggregations_inference():
+    """
+    Computes rolling window aggregations for inference in a single pass using
+    batch processing. Reads directly from `bronze_transactions` to include
+    all incoming transactions regardless of quality filter status, and joins
+    confirmed labels from `bronze_labels`. Transactions without a confirmed
+    label are treated as non-fraudulent, which is the correct assumption at
+    prediction time.
+    """
+    df_tx = (
+        spark.read.table(inference_events_source)
+             .withColumn("timestamp", to_timestamp(col("timestamp")))
+    )
+    df_lbl = spark.read.table(inference_labels_source).select("transaction_id", "is_fraud")
+
+    # Left join to get confirmed labels. Null is_fraud means the label has not
+    # arrived yet, which is treated as 0 (not confirmed fraud).
+    df_silver = (
+        df_tx.join(df_lbl, on = "transaction_id", how = "left")
+             .withColumn("is_fraud", coalesce(col("is_fraud"), lit(0)))
+    )
+
+    df = df_silver.withColumn("ts_ms", (col("timestamp").cast("double") * 1000).cast("long"))
+    return _compute_aggregations(df)

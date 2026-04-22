@@ -16,7 +16,7 @@ from databricks.feature_engineering import FeatureEngineeringClient, FeatureLook
 
 spine_table = f"{catalog}.{database}.gold_fraud_inference_spine"
 customer_profile_table = f"{catalog}.{database}.gold_customer_profile"
-customer_agg_table = f"{catalog}.{database}.gold_customer_aggregations"
+customer_agg_table = f"{catalog}.{database}.gold_customer_aggregations_inference"
 inference_enriched_table = f"{catalog}.{database}.gold_fraud_inference_enriched"
 fraud_labels_table = f"{catalog}.{database}.bronze_labels"
 
