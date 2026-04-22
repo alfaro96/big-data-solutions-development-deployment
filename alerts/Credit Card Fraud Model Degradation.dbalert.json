@@ -1,0 +1,47 @@
+{
+  "evaluation": {
+    "source": {
+      "name": "f1_delta",
+      "display": "f1_delta",
+      "aggregation": "AGGREGATION_UNSPECIFIED"
+    },
+    "comparison_operator": "LESS_THAN",
+    "threshold": {
+      "value": {
+        "double_value": -0.05
+      }
+    },
+    "notification": {
+      "retrigger_seconds": 1,
+      "notify_on_ok": true
+    }
+  },
+  "query_lines": [
+    "-- Alert: Credit Card Fraud Model Degradation",
+    "-- Triggers when F1-score for the fraud class (label = 1) drops more than 5 percentage",
+    "-- points below the baseline F1-score for the current champion model version.",
+    "",
+    "SELECT",
+    "    current.window,",
+    "    current.model_version,",
+    "    current.f1_score.one_vs_all['1'] AS f1_fraud_current,",
+    "    baseline.f1_score.one_vs_all['1'] AS f1_fraud_baseline,",
+    "    current.f1_score.one_vs_all['1'] -",
+    "    baseline.f1_score.one_vs_all['1'] AS f1_delta",
+    "FROM workspace.credit_card_fraud.gold_fraud_inference_enriched_profile_metrics AS current",
+    "JOIN workspace.credit_card_fraud.gold_fraud_inference_enriched_profile_metrics AS baseline",
+    "    ON baseline.log_type = 'BASELINE'",
+    "    AND baseline.slice_key IS NULL",
+    "    AND baseline.f1_score.one_vs_all['1'] IS NOT NULL",
+    "WHERE current.log_type = 'TABLE_METRICS'",
+    "AND current.slice_key IS NULL",
+    "AND current.model_version = (",
+    "    SELECT MAX(model_version)",
+    "    FROM workspace.credit_card_fraud.gold_fraud_inference_enriched_profile_metrics",
+    "    WHERE log_type  = 'TABLE_METRICS'",
+    "    AND slice_key IS NULL",
+    ")",
+    "ORDER BY current.window DESC",
+    "LIMIT 1"
+  ]
+}

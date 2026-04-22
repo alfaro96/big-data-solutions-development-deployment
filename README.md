@@ -10,10 +10,10 @@ El proyecto está diseñado para ejecutarse en el ecosistema de **`Databricks`**
 
 El desarrollo de esta solución se divide en las cuatro etapas clave de un proyecto *big data* real:
 
-* **Fase 1: Alcance y viabilidad:** Definición del caso de uso, cálculo del retorno de inversión y justificación de la arquitectura.
-* **Fase 2: Preparación y gestión de datos:** Ingesta, limpieza, enriquecimiento y creación del *feature store* utilizando programación declarativa con *Delta Live Tables* y la arquitectura *Medallion*. [Ver detalles del *pipeline* aquí](./src/medallion_pipeline/README.md).
-* **Fase 3: Modelado y experimentación:** Entrenamiento de modelos de aprendizaje automático con `Spark MLlib`, seguimiento de métricas y gestión del ciclo de vida del modelo mediante `MLflow`.
-* **Fase 4: Despliegue y monitorización:** Puesta en producción del modelo (inferencia en *batch* y *streaming*), integración continua y monitorización de degradación (*data* y *concept drift*).
+* **Fase 1: Alcance y viabilidad**: Definición del caso de uso, cálculo del retorno de inversión y justificación de la arquitectura.
+* **Fase 2: Preparación y gestión de datos**: Ingesta, limpieza, enriquecimiento y creación del *feature store* utilizando programación declarativa con *Delta Live Tables* y la arquitectura *Medallion*. [Ver detalles del *pipeline* aquí](./src/medallion_pipeline/README.md).
+* **Fase 3: Modelado y experimentación**: Entrenamiento de modelos de aprendizaje automático con `Spark MLlib`, seguimiento de métricas y gestión del ciclo de vida del modelo mediante `MLflow`.
+* **Fase 4: Despliegue y monitorización**: Puesta en producción del modelo mediante inferencia en *batch* cada dos horas sobre `gold_fraud_inference_spine`, integración continua con el patrón *champion-challenger* y monitorización de degradación (*data drift* y *concept drift*) mediante `Databricks Lakehouse Monitoring`. Las métricas de rendimiento y equidad se actualizan automáticamente en cada ciclo del *pipeline* y una alerta sobre el *F1-score* de la clase fraude notifica al equipo cuando el modelo requiere reentrenamiento.
 
 ---
 
@@ -22,6 +22,7 @@ El desarrollo de esta solución se divide en las cuatro etapas clave de un proye
 ```text
 ├── .vscode/  # Configuraciones del entorno visual
 ├── notebooks/  # Libretas interactivas para análisis, modelado y despliegue
+├── alerts/  # Consultas que alimentan las alertas para monitorización del modelo
 ├── resources/  # Infraestructura como código (definiciones de clústeres, etc.) y *dashboards*
 ├── src/  # Código fuente principal del proyecto
 │   └── medallion_pipeline/  # Pipeline de carga, extracción y transformación
