@@ -17,7 +17,7 @@
     }
   },
   "schedule": {
-    "quartz_cron_schedule": "7 0 6 * * ?",
+    "quartz_cron_schedule": "7 0 4 * * ?",
     "timezone_id": "Europe/Madrid"
   },
   "query_lines": [
@@ -40,12 +40,14 @@
     "WHERE current.log_type = 'INPUT'",
     "AND current.slice_key IS NULL",
     "AND current.column_name = ':table'",
+    "AND current.granularity = '1 day'",
     "AND current.model_version = (",
     "    SELECT MAX(model_version)",
     "    FROM workspace.credit_card_fraud.gold_fraud_inference_enriched_profile_metrics",
     "    WHERE log_type = 'INPUT'",
     "    AND slice_key IS NULL",
     "    AND column_name = ':table'",
+    "    AND granularity = '1 day'",
     ")",
     "ORDER BY current.window DESC",
     "LIMIT 1"
