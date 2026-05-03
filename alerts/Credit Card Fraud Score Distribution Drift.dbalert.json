@@ -1,0 +1,78 @@
+{
+  "evaluation": {
+    "source": {
+      "name": "psi",
+      "display": "psi",
+      "aggregation": "AGGREGATION_UNSPECIFIED"
+    },
+    "comparison_operator": "GREATER_THAN",
+    "threshold": {
+      "value": {
+        "double_value": 0.2
+      }
+    },
+    "notification": {
+      "retrigger_seconds": 1
+    }
+  },
+  "schedule": {
+    "quartz_cron_schedule": "45 0 4 * * ?",
+    "timezone_id": "Europe/Madrid"
+  },
+  "query_lines": [
+    "-- Alert: Credit Card Fraud Score Distribution Drift",
+    "-- Triggers when the population stability index of fraud probability exceeds 0.2,",
+    "-- indicating that the score distribution has shifted significantly from the",
+    "-- training baseline. Acts as an early warning signal that does not require",
+    "-- labels. Evaluated over a rolling 7-day window against the test baseline.",
+    "-- Threshold: psi > 0.2 (warning: 0.1, critical: 0.2)",
+    "",
+    "WITH baseline AS (",
+    "    SELECT",
+    "        COUNT(*) AS n,",
+    "        SUM(CASE WHEN prob_fraud < 0.1 THEN 1 ELSE 0 END) AS b0,",
+    "        SUM(CASE WHEN prob_fraud >= 0.1 AND prob_fraud < 0.2 THEN 1 ELSE 0 END) AS b1,",
+    "        SUM(CASE WHEN prob_fraud >= 0.2 AND prob_fraud < 0.4 THEN 1 ELSE 0 END) AS b2,",
+    "        SUM(CASE WHEN prob_fraud >= 0.4 AND prob_fraud < 0.6 THEN 1 ELSE 0 END) AS b3,",
+    "        SUM(CASE WHEN prob_fraud >= 0.6 AND prob_fraud < 0.8 THEN 1 ELSE 0 END) AS b4,",
+    "        SUM(CASE WHEN prob_fraud >= 0.8 THEN 1 ELSE 0 END) AS b5",
+    "    FROM workspace.credit_card_fraud.gold_fraud_test_baseline",
+    "),",
+    "current_window AS (",
+    "    SELECT",
+    "        COUNT(*) AS n,",
+    "        SUM(CASE WHEN prob_fraud < 0.1 THEN 1 ELSE 0 END) AS b0,",
+    "        SUM(CASE WHEN prob_fraud >= 0.1 AND prob_fraud < 0.2 THEN 1 ELSE 0 END) AS b1,",
+    "        SUM(CASE WHEN prob_fraud >= 0.2 AND prob_fraud < 0.4 THEN 1 ELSE 0 END) AS b2,",
+    "        SUM(CASE WHEN prob_fraud >= 0.4 AND prob_fraud < 0.6 THEN 1 ELSE 0 END) AS b3,",
+    "        SUM(CASE WHEN prob_fraud >= 0.6 AND prob_fraud < 0.8 THEN 1 ELSE 0 END) AS b4,",
+    "        SUM(CASE WHEN prob_fraud >= 0.8 THEN 1 ELSE 0 END) AS b5",
+    "    FROM workspace.credit_card_fraud.gold_fraud_inference_enriched",
+    "    WHERE inference_timestamp >= DATE_SUB(CURRENT_DATE(), 7)",
+    "),",
+    "psi_components AS (",
+    "    SELECT",
+    "        (c.b0 / c.n) AS c0, (b.b0 / b.n) AS b0,",
+    "        (c.b1 / c.n) AS c1, (b.b1 / b.n) AS b1,",
+    "        (c.b2 / c.n) AS c2, (b.b2 / b.n) AS b2,",
+    "        (c.b3 / c.n) AS c3, (b.b3 / b.n) AS b3,",
+    "        (c.b4 / c.n) AS c4, (b.b4 / b.n) AS b4,",
+    "        (c.b5 / c.n) AS c5, (b.b5 / b.n) AS b5,",
+    "        c.n AS current_transactions,",
+    "        b.n AS baseline_transactions",
+    "    FROM current_window c CROSS JOIN baseline b",
+    ")",
+    "SELECT",
+    "    current_transactions,",
+    "    baseline_transactions,",
+    "    ROUND(",
+    "        (c0 - b0) * LN(GREATEST(c0, 1e-4) / GREATEST(b0, 1e-4)) +",
+    "        (c1 - b1) * LN(GREATEST(c1, 1e-4) / GREATEST(b1, 1e-4)) +",
+    "        (c2 - b2) * LN(GREATEST(c2, 1e-4) / GREATEST(b2, 1e-4)) +",
+    "        (c3 - b3) * LN(GREATEST(c3, 1e-4) / GREATEST(b3, 1e-4)) +",
+    "        (c4 - b4) * LN(GREATEST(c4, 1e-4) / GREATEST(b4, 1e-4)) +",
+    "        (c5 - b5) * LN(GREATEST(c5, 1e-4) / GREATEST(b5, 1e-4))",
+    "    , 4) AS psi",
+    "FROM psi_components"
+  ]
+}
