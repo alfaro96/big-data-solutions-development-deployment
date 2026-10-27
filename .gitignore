@@ -1,8 +1,22 @@
-node_modules/
-dist/
-*.pdf
-.DS_Store
+# Byte-compiled files and caches of the Python tools
 __pycache__/
+*.py[cod]
+.ruff_cache/
+.pytest_cache/
+
+# Virtual environments and local environment variables
 .venv/
 .env
+
+# Slides: npm dependencies, Vite build and decks exported to PDF
+slides/node_modules/
+slides/dist/
+*.pdf
+
+# Local settings of Claude Code
 .claude/settings.local.json
+
+# Editors and operating systems
+.idea/
+*.swp
+.DS_Store
