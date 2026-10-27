@@ -31,6 +31,7 @@ Este proyecto es material docente y a la vez ejemplo de referencia: todo lo que 
 Todo el código de `code/` debe basarse en lo que la plataforma permite en **nuestra edición** y en lo que su documentación oficial recomienda.
 
 - Fuente de verdad: `docs/referencia-databricks.md`, mantenida por el agente `databricks-researcher` (`/research-databricks`).
+- Las skills del plugin oficial de Databricks (`databricks@claude-plugins-official`) orientan, pero no son fuente de verdad: son genéricas y no garantizan lo que permite Free Edition. Lo que se afirme o se use en `code/` o en `slides/` debe estar en la referencia con su cita; si el plugin sugiere algo que no está, se investiga antes con `databricks-researcher`.
 - Antes de revisar o modificar código de una fase, comprueba que la referencia cubre sus capacidades, límites y buenas prácticas; si no, investiga primero.
 - Edición: **Databricks Free Edition**. Community Edition está retirada: no uses su documentación ni asumas características de otra edición.
 - Fuentes: para el código (APIs, patrones, buenas prácticas), la documentación general de Databricks para AWS (`docs.databricks.com/aws/en/`); para cómputo, permisos, cuotas y límites, la de Free Edition. Que algo no aparezca en las páginas de la edición no impide usarlo si la documentación general lo describe.

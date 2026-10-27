@@ -13,6 +13,10 @@ slides/node_modules/
 slides/dist/
 *.pdf
 
+# Local state of Databricks: bundle deployments and the AI tools of the
+# VS Code extension, both in code/ and at the root
+.databricks/
+
 # Local settings of Claude Code
 .claude/settings.local.json
 

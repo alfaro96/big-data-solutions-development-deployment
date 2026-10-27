@@ -1,8 +1,8 @@
 // Extensions for working on this repository. Install them in a dedicated VS
 // Code profile, so that they stay out of the default one: open the repository
-// with `code --profile big-data-solutions .` and run "Extensions: Show
-// Recommended Extensions" (the cloud icon installs all of them in the active
-// profile)
+// with `code --profile big-data-solutions-development-deployment .` and run
+// "Extensions: Show Recommended Extensions" (the cloud icon installs all of
+// them in the active profile)
 {
   "recommendations": [
     // Python: interpreter selection, language server (Pylance, included in

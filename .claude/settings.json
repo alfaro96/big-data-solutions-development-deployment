@@ -1,4 +1,8 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "Bash(git status:*)",
@@ -20,8 +24,7 @@
       "Read(./.env)"
     ]
   },
-  "attribution": {
-    "commit": "",
-    "pr": ""
+  "enabledPlugins": {
+    "databricks@claude-plugins-official": true
   }
 }
