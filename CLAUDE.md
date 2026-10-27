@@ -32,7 +32,8 @@ Todo el código de `code/` debe basarse en lo que la plataforma permite en **nue
 
 - Fuente de verdad: `docs/referencia-databricks.md`, mantenida por el agente `databricks-researcher` (`/research-databricks`).
 - Antes de revisar o modificar código de una fase, comprueba que la referencia cubre sus capacidades, límites y buenas prácticas; si no, investiga primero.
-- Aviso: la edición gratuita actual es **Free Edition** (sustituyó a Community Edition). Confirma con el profesor qué edición se usa y no asumas características de otra.
+- Edición: **Databricks Free Edition**. Community Edition está retirada: no uses su documentación ni asumas características de otra edición.
+- Fuentes: para el código (APIs, patrones, buenas prácticas), la documentación general de Databricks para AWS (`docs.databricks.com/aws/en/`); para cómputo, permisos, cuotas y límites, la de Free Edition. Que algo no aparezca en las páginas de la edición no impide usarlo si la documentación general lo describe.
 - Cita siempre URL y fecha. Si no puedes verificar algo, regístralo en "Preguntas abiertas"; no lo afirmes. Lo que requiera comprobarse en el workspace real se marca así.
 - Ante conflicto entre una práctica genérica y la documentación oficial de la plataforma, prevalece la documentación, y se deja constancia.
 
