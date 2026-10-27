@@ -1,0 +1,50 @@
+// Workspace settings for this repository. They mirror the tools configured in
+// code/pyproject.toml and the writing conventions of the repository, so the
+// editor reports and fixes the same things
+{
+  // Python of the uv environment of code/ (`uv sync` inside code/ creates it
+  // with the dev group: pytest, ruff and Databricks Connect)
+  "python.defaultInterpreterPath": "${workspaceFolder}/code/.venv/bin/python",
+
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  // Line length of the code rules in docs/reglas-codigo.md
+  "editor.rulers": [100],
+
+  // Every file ends with a single newline and has no trailing whitespace
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+
+  // Markdown paragraphs are a single line, without hard wraps
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.rulers": []
+  },
+
+  // Generated files: hidden from search and from the file watcher, but kept
+  // in the explorer to inspect them. The snippets are copies of code/ made by
+  // slides/scripts/extract_snippets.py, so search only hits the source
+  "search.exclude": {
+    "slides/snippets/": true,
+    "slides/dist/": true,
+    "code/.databricks/": true
+  },
+  "files.watcherExclude": {
+    "slides/dist/**": true,
+    "**/.databricks/**": true,
+    "**/.ruff_cache/**": true,
+    "**/.pytest_cache/**": true
+  },
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.ruff_cache": true,
+    "**/.pytest_cache": true,
+    "**/.ipynb_checkpoints": true
+  }
+}

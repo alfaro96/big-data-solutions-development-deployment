@@ -1,0 +1,35 @@
+// Extensions for working on this repository. Install them in a dedicated VS
+// Code profile, so that they stay out of the default one: open the repository
+// with `code --profile big-data-solutions .` and run "Extensions: Show
+// Recommended Extensions" (the cloud icon installs all of them in the active
+// profile)
+{
+  "recommendations": [
+    // Python: interpreter selection, language server (Pylance, included in
+    // its extension pack), test explorer (pytest) and debugger
+    "ms-python.python",
+    "ms-python.debugpy",
+    // Linter and formatter, with the configuration of code/pyproject.toml
+    "charliermarsh.ruff",
+    // Notebooks of code/notebooks
+    "ms-toolsai.jupyter",
+    // Bundle deployment (code/databricks.yml) and Databricks Connect, which
+    // runs local code on the workspace
+    "databricks.databricks",
+    // pyproject.toml
+    "tamasfe.even-better-toml",
+    // Bundle resources of code/ and slides/snippets.yaml
+    "redhat.vscode-yaml",
+    // Claude Code
+    "anthropic.claude-code",
+    // Spanish display language
+    "ms-ceintl.vscode-language-pack-es"
+  ],
+  "unwantedRecommendations": [
+    // Replaced by Ruff
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "ms-python.flake8",
+    "ms-python.pylint"
+  ]
+}
