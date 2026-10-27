@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Semana WW · Vídeo VV · Título</title>
+  <!-- El tema real se hereda de ../theme/ (pendiente de extraer de la referencia) -->
+  <link rel="stylesheet" href="/node_modules/reveal.js/dist/reveal.css">
+  <link rel="stylesheet" href="/theme/theme.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+  <section>
+    <h2>Pregunta guía</h2>
+    <p>(¿Qué decisión de ingeniería resuelve este vídeo?)</p>
+    <aside class="notes">Objetivo, enlace con el vídeo anterior. ~1 min.</aside>
+  </section>
+
+  <section>
+    <h2>Problema real</h2>
+    <aside class="notes">Fallo en producción o escenario. ~3 min.</aside>
+  </section>
+
+  <section>
+    <h2>Código del proyecto</h2>
+    <p><code>ruta/del/fichero.py</code> · fase X</p>
+    <!-- Incluir el contenido de slides/snippets/<id>.<ext>, nunca copiarlo a mano -->
+    <aside class="notes">Qué decisión demuestra este código. ~3 min.</aside>
+  </section>
+
+  <section>
+    <h2>Resumen y siguiente vídeo</h2>
+    <aside class="notes">Cierre y pregunta que prepara el cuestionario. ~1 min.</aside>
+  </section>
+
+</div></div>
+<script type="module">
+  import Reveal from 'reveal.js';
+  import RevealNotes from 'reveal.js/plugin/notes/notes.esm.js';
+  Reveal.initialize({ hash: true, plugins: [RevealNotes] });
+</script>
+</body>
+</html>
