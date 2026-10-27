@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(python slides/scripts/extract_snippets.py:*)",
+      "Bash(npm run build:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "WebFetch(domain:docs.databricks.com)",
+      "WebFetch(domain:learn.microsoft.com)",
+      "WebFetch(domain:mlflow.org)",
+      "WebFetch(domain:spark.apache.org)",
+      "WebSearch"
+    ],
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Read(./.env)"
+    ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}

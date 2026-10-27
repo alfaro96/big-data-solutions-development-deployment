@@ -1,0 +1,20 @@
+# Manifiesto de fragmentos de código mostrados en las diapositivas.
+# El código de code/ NO lleva marcadores: aquí se declara qué se extrae.
+#
+# Formas de seleccionar (una por entrada):
+#   symbol: nombre de función/clase de un .py (extracción por AST, incluye decorador)
+#   start/end: expresiones regulares de la primera y la última línea (inclusive)
+#   lines: [inicio, fin] (último recurso; frágil ante cambios)
+#
+# Ejemplo (descomentar cuando exista el código):
+#
+# snippets:
+#   - id: gold-compute-aggregations
+#     file: src/medallion_pipeline/transformations/03_gold_customer_aggregations.py
+#     symbol: _compute_aggregations
+#   - id: sim-inject-window
+#     file: notebooks/10_Simulation.py
+#     start: '^if not pending_tx:'
+#     end: 'Labels injected'
+
+snippets: []

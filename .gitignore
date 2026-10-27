@@ -1,48 +1,8 @@
-# Databricks asset bundles
-.databricks/
-scratch/**
-!scratch/README.md
-**/explorations/**
-**/!explorations/README.md
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pdb
-*.egg-info/
-*.egg-info
-*.egg
-*.log
-
-# Virtual environments
-.venv/
-venv/
-.env/
-.env.*
-
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb~ 
-
-# Runs and artifacts
-mlruns/
-mlartifacts/
-
-# Operating system files
-.DS_Store
-Thumbs.db
-
-# Integrated development environment files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Build and packaging
-build/
+node_modules/
 dist/
-.eggs/
-*.tar.gz
-*.whl
+*.pdf
+.DS_Store
+__pycache__/
+.venv/
+.env
+.claude/settings.local.json
