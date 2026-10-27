@@ -47,8 +47,7 @@ Todo el código de `code/` debe basarse en lo que la plataforma permite en **nue
 ## Idioma
 
 - Español: README, documentación, diapositivas, notas del orador, cuestionarios, informes y ficheros como este.
-- Inglés: todo el código (identificadores, comentarios, docstrings, strings, salidas por pantalla) y los mensajes de commit del repositorio público.
-- Los mensajes de commit del repositorio privado van en español.
+- Inglés: todo el código (identificadores, comentarios, docstrings, strings, salidas por pantalla) y todos los mensajes de commit.
 
 ## Formato de los textos en Markdown
 
@@ -106,7 +105,7 @@ Todos los commits y pull requests salen **a nombre del profesor**, con la identi
 
 ### Firma de los commits
 
-- **Todos los commits van firmados** con la clave del profesor ya configurada: `git commit -S`, y `git merge --no-ff -S` o `git tag -s` para fusiones y etiquetas. No asumas que `commit.gpgsign` está activado: usa `-S` siempre.
+- **Todos los commits van firmados** con la clave del profesor ya configurada: `git commit -S`, también en el commit de cada integración (*squash merge*), y `git tag -s` para etiquetas. No asumas que `commit.gpgsign` está activado: usa `-S` siempre.
 - Después de cada commit, comprueba la firma: `git log -1 --format='%G? %GS'` debe mostrar `G` (firma válida). Cualquier otro estado (`N`, `B`, `E`, `U`, `X`, `Y`, `R`) es un fallo.
 - Si la firma falla (clave no disponible, `ssh-agent` o `gpg-agent` sin desbloquear, passphrase pendiente), **detente y avisa al profesor**. Nunca uses `--no-gpg-sign`, ni `-c commit.gpgsign=false`, ni cambies la configuración de firma para saltártelo, ni dejes un commit sin firmar "para firmarlo luego".
 - No reescribas commits ya firmados (`rebase`, `commit --amend`) salvo que el profesor lo pida, porque cambiarlos invalida su firma.
